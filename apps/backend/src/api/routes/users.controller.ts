@@ -281,7 +281,16 @@ export class UsersController {
     response.status(200).send();
   }
 
-  @Post('/t')
+  @Post('/password')
+  async changePassword(
+    @GetUserFromRequest() user: User,
+    @Body('currentPassword') currentPassword: string,
+    @Body('newPassword') newPassword: string
+  ) {
+    return this._authService.changePassword(user, currentPassword, newPassword);
+  }
+
+    @Post('/t')
   async trackEvent(
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,

@@ -308,6 +308,16 @@ export class AuthService {
     return { token };
   }
 
+
+  async changePassword(user: any, currentPassword: string, newPassword: string) {
+    const dbUser = await this._userService.getUserById(user.id);
+    if (!dbUser || !AuthChecker.comparePassword(currentPassword, dbUser.password)) {
+      throw new Error('Current password is incorrect');
+    }
+    await this._userService.updatePassword(dbUser.id, newPassword);
+    return { success: true };
+  }
+
   private async jwt(user: User) {
     return AuthChecker.signJWT(user);
   }

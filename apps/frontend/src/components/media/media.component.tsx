@@ -816,19 +816,7 @@ export const MultiMediaComponent: FC<{
                   </div>
                 </div>
               </div>
-              <div
-                onClick={designMedia}
-                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px]"
-              >
-                <div className="flex gap-[5px] items-center">
-                  <div>
-                    <DesignMediaIcon />
-                  </div>
-                  <div className="text-[10px] font-[600] iconBreak:hidden block">
-                    {t('design_media', 'Design Media')}
-                  </div>
-                </div>
-              </div>
+
 
               <ThirdPartyMedia allData={allData} onChange={changeMedia} />
 
@@ -962,9 +950,7 @@ export const MediaComponent: FC<{
       )}
       <div className="flex gap-[5px]">
         <Button onClick={showModal}>{t('select', 'Select')}</Button>
-        <Button onClick={showDesignModal} className="!bg-customColor45">
-          {t('editor', 'Editor')}
-        </Button>
+
         <Button secondary={true} onClick={clearMedia}>
           {t('clear', 'Clear')}
         </Button>

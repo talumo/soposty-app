@@ -32,6 +32,94 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { SVGLine } from '@gitroom/frontend/components/launches/launches.component';
 import { GlobalSettings } from '@gitroom/frontend/components/settings/global.settings';
 import { ApprovedAppsComponent } from '@gitroom/frontend/components/approved-apps/approved-apps.component';
+const SecurityTab: FC = () => {
+  const fetch = useFetch();
+  const toast = useToaster();
+  const t = useT();
+  const [loading, setLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleChangePassword = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.show(t('passwords_do_not_match', 'Passwords do not match'));
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.show(t('password_too_short', 'Password must be at least 8 characters'));
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/user/password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (res.ok) {
+        toast.show(t('password_changed', 'Password changed successfully'));
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        const data = await res.json();
+        toast.show(data?.message || t('password_change_failed', 'Failed to change password'));
+      }
+    } catch (e) {
+      toast.show(t('password_change_failed', 'Failed to change password'));
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPassword, newPassword, confirmPassword, fetch, toast, t]);
+
+  return (
+    <div className="flex flex-col gap-[16px] max-w-[480px]">
+      <h2 className="text-[18px] font-[600]">{t('change_password', 'Change Password')}</h2>
+      <form onSubmit={handleChangePassword} className="flex flex-col gap-[12px]">
+        <div className="flex flex-col gap-[4px]">
+          <label className="text-[12px] text-textColor/70">{t('current_password', 'Current Password')}</label>
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            className="bg-newBgColorInner border border-customColor6 rounded-[8px] px-[12px] py-[8px] text-[14px] outline-none focus:border-[#7C3AED]"
+            required
+          />
+        </div>
+        <div className="flex flex-col gap-[4px]">
+          <label className="text-[12px] text-textColor/70">{t('new_password', 'New Password')}</label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="bg-newBgColorInner border border-customColor6 rounded-[8px] px-[12px] py-[8px] text-[14px] outline-none focus:border-[#7C3AED]"
+            required
+            minLength={8}
+          />
+        </div>
+        <div className="flex flex-col gap-[4px]">
+          <label className="text-[12px] text-textColor/70">{t('confirm_new_password', 'Confirm New Password')}</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="bg-newBgColorInner border border-customColor6 rounded-[8px] px-[12px] py-[8px] text-[14px] outline-none focus:border-[#7C3AED]"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 rounded-[8px] px-[16px] py-[10px] text-[14px] font-[600] transition-colors"
+        >
+          {loading ? t('saving', 'Saving...') : t('change_password', 'Change Password')}
+        </button>
+      </form>
+    </div>
+  );
+};
+
 export const SettingsPopup: FC<{
   getRef?: Ref<any>;
 }> = (props) => {
@@ -106,6 +194,7 @@ export const SettingsPopup: FC<{
     if (user?.tier?.public_api && isGeneral && showLogout) {
       arr.push({ tab: 'api', label: t('developers', 'Developers') });
     }
+    arr.push({ tab: 'security', label: t('security', 'Security') });
     arr.push({ tab: 'approved_apps', label: t('approved_apps', 'Approved Apps') });
 
     return arr;
@@ -203,6 +292,12 @@ export const SettingsPopup: FC<{
                     <PublicComponent />
                   </div>
                 )}
+
+              {tab === 'security' && (
+                <div>
+                  <SecurityTab />
+                </div>
+              )}
 
               {tab === 'approved_apps' && (
                 <div>

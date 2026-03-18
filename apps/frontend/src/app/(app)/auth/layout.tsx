@@ -14,16 +14,17 @@ export default async function AuthLayout({
   const t = await getT();
 
   return (
-    <div className="bg-[#0E0E0E] flex flex-1 p-[12px] gap-[12px] min-h-screen w-screen text-white">
-      {/*<style>{`html, body {overflow-x: hidden;}`}</style>*/}
+    <div className="bg-[#0A0A0A] min-h-screen flex items-center justify-center text-white">
       <ReturnUrlComponent />
-      <div className="flex flex-col py-[40px] px-[20px] flex-1 lg:w-[600px] lg:flex-none rounded-[12px] text-white p-[12px] bg-[#1A1919]">
-        <div className="w-full max-w-[440px] mx-auto justify-center gap-[20px] h-full flex flex-col text-white">
+      <div
+        className="bg-[#111111] rounded-[16px] border border-[#222222] p-[48px] w-full max-w-[480px] shadow-2xl"
+        style={{ borderTop: '4px solid #7C3AED' }}
+      >
+        <div className="flex flex-col items-center gap-[24px]">
           <LogoTextComponent />
-          <div className="flex">{children}</div>
+          <div className="flex w-full">{children}</div>
         </div>
       </div>
-
     </div>
   );
 }
