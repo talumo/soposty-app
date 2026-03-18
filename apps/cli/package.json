@@ -1,10 +1,10 @@
 {
-  "name": "postiz",
+  "name": "soposty",
   "version": "2.0.5",
-  "description": "Postiz CLI - Command line interface for the Postiz social media scheduling API",
+  "description": "Soposty CLI - Command line interface for the Soposty social media scheduling API",
   "main": "dist/index.js",
   "bin": {
-    "postiz": "./dist/index.js"
+    "soposty": "./dist/index.js"
   },
   "scripts": {
     "dev": "tsup --watch",
@@ -30,11 +30,11 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gitroomhq/postiz-app.git",
+    "url": "https://github.com/talumo/soposty-app.git",
     "directory": "apps/cli"
   },
-  "homepage": "https://postiz.com",
+  "homepage": "https://soposty.com",
   "bugs": {
-    "url": "https://github.com/gitroomhq/postiz-app/issues"
+    "url": "https://github.com/talumo/soposty-app/issues"
   }
 }
