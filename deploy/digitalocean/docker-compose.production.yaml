@@ -1,0 +1,187 @@
+services:
+  soposty:
+    image: ghcr.io/talumo/soposty-app:${SOPOSTY_IMAGE_TAG:-latest}
+    container_name: soposty
+    restart: always
+    env_file:
+      - path: .env.production
+        required: false
+    environment:
+      MAIN_URL: ${MAIN_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL}
+      TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS}
+      IS_GENERAL: ${IS_GENERAL}
+      DISABLE_REGISTRATION: ${DISABLE_REGISTRATION}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER}
+      UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY}
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: ${NEXT_PUBLIC_UPLOAD_DIRECTORY}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
+      CLOUDFLARE_ACCESS_KEY: ${CLOUDFLARE_ACCESS_KEY}
+      CLOUDFLARE_SECRET_ACCESS_KEY: ${CLOUDFLARE_SECRET_ACCESS_KEY}
+      CLOUDFLARE_BUCKETNAME: ${CLOUDFLARE_BUCKETNAME}
+      CLOUDFLARE_BUCKET_URL: ${CLOUDFLARE_BUCKET_URL}
+      CLOUDFLARE_REGION: ${CLOUDFLARE_REGION}
+      X_URL: ${X_URL}
+      X_API_KEY: ${X_API_KEY}
+      X_API_SECRET: ${X_API_SECRET}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID}
+      REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      BEEHIIVE_API_KEY: ${BEEHIIVE_API_KEY}
+      BEEHIIVE_PUBLICATION_ID: ${BEEHIIVE_PUBLICATION_ID}
+      THREADS_APP_ID: ${THREADS_APP_ID}
+      THREADS_APP_SECRET: ${THREADS_APP_SECRET}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+      FACEBOOK_SCOPES: ${FACEBOOK_SCOPES}
+      YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID}
+      YOUTUBE_CLIENT_SECRET: ${YOUTUBE_CLIENT_SECRET}
+      TIKTOK_CLIENT_ID: ${TIKTOK_CLIENT_ID}
+      TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET}
+      PINTEREST_CLIENT_ID: ${PINTEREST_CLIENT_ID}
+      PINTEREST_CLIENT_SECRET: ${PINTEREST_CLIENT_SECRET}
+      DRIBBBLE_CLIENT_ID: ${DRIBBBLE_CLIENT_ID}
+      DRIBBBLE_CLIENT_SECRET: ${DRIBBBLE_CLIENT_SECRET}
+      TUMBLR_CLIENT_ID: ${TUMBLR_CLIENT_ID}
+      TUMBLR_CLIENT_SECRET: ${TUMBLR_CLIENT_SECRET}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_BOT_TOKEN_ID: ${DISCORD_BOT_TOKEN_ID}
+      SLACK_ID: ${SLACK_ID}
+      SLACK_SECRET: ${SLACK_SECRET}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET}
+      MASTODON_URL: ${MASTODON_URL}
+      MASTODON_CLIENT_ID: ${MASTODON_CLIENT_ID}
+      MASTODON_CLIENT_SECRET: ${MASTODON_CLIENT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      NEXT_PUBLIC_CHROME_EXTENSION_URL: ${NEXT_PUBLIC_CHROME_EXTENSION_URL}
+      NEXT_PUBLIC_DISCORD_SUPPORT: ${NEXT_PUBLIC_DISCORD_SUPPORT}
+      NEXT_PUBLIC_POLOTNO: ${NEXT_PUBLIC_POLOTNO}
+      API_LIMIT: ${API_LIMIT}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+      FEE_AMOUNT: ${FEE_AMOUNT}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_SIGNING_KEY: ${STRIPE_SIGNING_KEY}
+      STRIPE_SIGNING_KEY_CONNECT: ${STRIPE_SIGNING_KEY_CONNECT}
+      NX_ADD_PLUGINS: ${NX_ADD_PLUGINS}
+    volumes:
+      - soposty-config:/config/
+      - soposty-uploads:/uploads/
+    ports:
+      - '127.0.0.1:4007:5000'
+    networks:
+      - soposty-network
+      - temporal-network
+    depends_on:
+      soposty-postgres:
+        condition: service_healthy
+      soposty-redis:
+        condition: service_healthy
+
+  soposty-postgres:
+    image: postgres:17-alpine
+    container_name: soposty-postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - soposty-postgres-volume:/var/lib/postgresql/data
+    networks:
+      - soposty-network
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  soposty-redis:
+    image: redis:7.2
+    container_name: soposty-redis
+    restart: always
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - soposty-redis-data:/data
+    networks:
+      - soposty-network
+
+  temporal-elasticsearch:
+    container_name: temporal-elasticsearch
+    image: elasticsearch:7.17.27
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    networks:
+      - temporal-network
+    expose:
+      - 9200
+    volumes:
+      - temporal-elasticsearch-data:/usr/share/elasticsearch/data
+
+  temporal-postgresql:
+    container_name: temporal-postgresql
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: temporal
+    networks:
+      - temporal-network
+    expose:
+      - 5432
+    volumes:
+      - temporal-postgresql-data:/var/lib/postgresql/data
+
+  temporal:
+    container_name: temporal
+    image: temporalio/auto-setup:1.28.1
+    depends_on:
+      - temporal-postgresql
+      - temporal-elasticsearch
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=temporal-elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_NAMESPACE=default
+    networks:
+      - temporal-network
+    volumes:
+      - ../../dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+
+volumes:
+  soposty-postgres-volume:
+  soposty-redis-data:
+  soposty-config:
+  soposty-uploads:
+  temporal-elasticsearch-data:
+  temporal-postgresql-data:
+
+networks:
+  soposty-network:
+  temporal-network:

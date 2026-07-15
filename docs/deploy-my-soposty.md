@@ -67,6 +67,68 @@ Marketing CTAs should send users to the logged-in app:
 https://my.soposty.com/auth
 ```
 
+## DigitalOcean Droplet Deployment
+
+Use a Droplet with Docker Compose and a reverse proxy such as Caddy or Nginx.
+The production Compose file is:
+
+```text
+deploy/digitalocean/docker-compose.production.yaml
+```
+
+On the Droplet:
+
+```bash
+git clone https://github.com/talumo/soposty-app.git /opt/soposty-app
+cd /opt/soposty-app
+git checkout soposty/current-upstream-rebrand
+cp deploy/digitalocean/.env.production.example deploy/digitalocean/.env.production
+```
+
+Edit `deploy/digitalocean/.env.production` with real secrets, then start the stack:
+
+```bash
+docker compose \
+  --env-file deploy/digitalocean/.env.production \
+  -f deploy/digitalocean/docker-compose.production.yaml \
+  up -d
+```
+
+The app listens locally on `127.0.0.1:4007`. Point the reverse proxy for `my.soposty.com` to:
+
+```text
+http://127.0.0.1:4007
+```
+
+If using Caddy, the site block can be:
+
+```caddyfile
+my.soposty.com {
+  reverse_proxy 127.0.0.1:4007
+}
+```
+
+To update after a new image is published:
+
+```bash
+cd /opt/soposty-app
+git pull
+docker compose \
+  --env-file deploy/digitalocean/.env.production \
+  -f deploy/digitalocean/docker-compose.production.yaml \
+  pull soposty
+docker compose \
+  --env-file deploy/digitalocean/.env.production \
+  -f deploy/digitalocean/docker-compose.production.yaml \
+  up -d
+```
+
+If the GitHub Container Registry package is private, log in once on the Droplet:
+
+```bash
+docker login ghcr.io
+```
+
 ## Smoke Test Checklist
 
 - `https://my.soposty.com` loads over HTTPS.
