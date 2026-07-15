@@ -21,6 +21,12 @@ import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 import { timer } from '@gitroom/helpers/utils/timer';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
 
+const configuredFacebookScopes = process.env.FACEBOOK_SCOPES?.split(',')
+  .map((scope) => scope.trim())
+  .filter(Boolean);
+
+const defaultFacebookScopes = ['pages_show_list', 'pages_read_engagement'];
+
 @Rules(
   "Facebook posts can be text only, or include photos or a video. If it's a story, it must have at least one attachment (photo or video), and each media is published as a separate story."
 )
@@ -28,14 +34,9 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
   identifier = 'facebook';
   name = 'Facebook Page';
   isBetweenSteps = true;
-  scopes = [
-    'pages_show_list',
-    'business_management',
-    'pages_manage_posts',
-    'pages_manage_engagement',
-    'pages_read_engagement',
-    'read_insights',
-  ];
+  scopes = configuredFacebookScopes?.length
+    ? configuredFacebookScopes
+    : defaultFacebookScopes;
   override maxConcurrentJob = 500; // Facebook has reasonable rate limits
   editor = 'normal' as const;
   maxLength() {

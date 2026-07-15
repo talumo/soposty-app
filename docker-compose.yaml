@@ -1,7 +1,7 @@
 services:
-  postiz:
-    image: ghcr.io/gitroomhq/postiz-app:latest
-    container_name: postiz
+  soposty:
+    image: ghcr.io/talumo/soposty-app:latest
+    container_name: soposty
     restart: always
     environment:
       # === Required Settings
@@ -9,8 +9,8 @@ services:
       FRONTEND_URL: 'http://localhost:4007'
       NEXT_PUBLIC_BACKEND_URL: 'http://localhost:4007/api'
       JWT_SECRET: 'random string that is unique to every install - just type random characters here!'
-      DATABASE_URL: 'postgresql://postiz-user:postiz-password@postiz-postgres:5432/postiz-db-local'
-      REDIS_URL: 'redis://postiz-redis:6379'
+      DATABASE_URL: 'postgresql://soposty-user:soposty-password@soposty-postgres:5432/soposty-db-local'
+      REDIS_URL: 'redis://soposty-redis:6379'
       BACKEND_INTERNAL_URL: 'http://localhost:3000'
       TEMPORAL_ADDRESS: 'temporal:7233'
       IS_GENERAL: 'true'
@@ -46,6 +46,7 @@ services:
       THREADS_APP_SECRET: ''
       FACEBOOK_APP_ID: ''
       FACEBOOK_APP_SECRET: ''
+      FACEBOOK_SCOPES: 'pages_show_list,pages_read_engagement'
       YOUTUBE_CLIENT_ID: ''
       YOUTUBE_CLIENT_SECRET: ''
       TIKTOK_CLIENT_ID: ''
@@ -85,6 +86,7 @@ services:
 
       # === Misc Settings
       OPENAI_API_KEY: ''
+      NEXT_PUBLIC_CHROME_EXTENSION_URL: 'https://soposty.com/extension'
       NEXT_PUBLIC_DISCORD_SUPPORT: ''
       NEXT_PUBLIC_POLOTNO: ''
       API_LIMIT: 30
@@ -112,39 +114,39 @@ services:
       # LINK_DRIP_SHORT_LINK_DOMAIN: "dripl.ink"
 
     volumes:
-      - postiz-config:/config/
-      - postiz-uploads:/uploads/
+      - soposty-config:/config/
+      - soposty-uploads:/uploads/
     ports:
       - '4007:5000'
     networks:
-      - postiz-network
+      - soposty-network
       - temporal-network
     depends_on:
-      postiz-postgres:
+      soposty-postgres:
         condition: service_healthy
-      postiz-redis:
+      soposty-redis:
         condition: service_healthy
 
-  postiz-postgres:
+  soposty-postgres:
     image: postgres:17-alpine
-    container_name: postiz-postgres
+    container_name: soposty-postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: postiz-password
-      POSTGRES_USER: postiz-user
-      POSTGRES_DB: postiz-db-local
+      POSTGRES_PASSWORD: soposty-password
+      POSTGRES_USER: soposty-user
+      POSTGRES_DB: soposty-db-local
     volumes:
-      - postgres-volume:/var/lib/postgresql/data
+      - soposty-postgres-volume:/var/lib/postgresql/data
     networks:
-      - postiz-network
+      - soposty-network
     healthcheck:
-      test: pg_isready -U postiz-user -d postiz-db-local
+      test: pg_isready -U soposty-user -d soposty-db-local
       interval: 10s
       timeout: 3s
       retries: 3
-  postiz-redis:
+  soposty-redis:
     image: redis:7.2
-    container_name: postiz-redis
+    container_name: soposty-redis
     restart: always
     healthcheck:
       test: redis-cli ping
@@ -152,9 +154,9 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - postiz-redis-data:/data
+      - soposty-redis-data:/data
     networks:
-      - postiz-network
+      - soposty-network
 
   # For Application Monitoring / Debugging
   spotlight:
@@ -164,7 +166,7 @@ services:
       - 8969:8969/tcp
     image: ghcr.io/getsentry/spotlight:latest
     networks:
-      - postiz-network
+      - soposty-network
 
   # -----------------------
   # Temporal Stack
@@ -251,20 +253,20 @@ services:
       - '8080:8080'
 
 volumes:
-  postgres-volume:
+  soposty-postgres-volume:
     external: false
 
-  postiz-redis-data:
+  soposty-redis-data:
     external: false
 
-  postiz-config:
+  soposty-config:
     external: false
 
-  postiz-uploads:
+  soposty-uploads:
     external: false
 
 networks:
-  postiz-network:
+  soposty-network:
     external: false
   temporal-network:
     driver: bridge

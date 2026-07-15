@@ -275,12 +275,15 @@ export const CustomVariables: FC<{
 const ExtensionNotFound: FC = () => {
   const modals = useModals();
   const t = useT();
+  const extensionUrl =
+    process.env.NEXT_PUBLIC_CHROME_EXTENSION_URL || 'https://soposty.com/extension';
+
   return (
     <div className="flex flex-col gap-[16px] pt-[8px]">
       <p className="text-[14px] text-textColor/80">
         {t(
           'extension_not_available',
-          'The Postiz browser extension is not installed. You need to install it before connecting this channel.'
+          'The Soposty browser extension is not installed. You need to install it before connecting this channel.'
         )}
       </p>
       <div className="flex gap-[10px]">
@@ -288,10 +291,7 @@ const ExtensionNotFound: FC = () => {
           type="button"
           className="flex-1"
           onClick={() => {
-            window.open(
-              'https://chromewebstore.google.com/detail/postiz/cidhffagahknaeodkplfbcpfeielnkjl?hl=en',
-              '_blank'
-            );
+            window.open(extensionUrl, '_blank');
             modals.closeCurrent();
           }}
         >
@@ -346,7 +346,7 @@ const ChromeExtensionWarning: FC<{
           We will store your cookies securely to facilitate the connection.
         </li>
         <li>
-          Postiz does not take responsibility for any issues arising or account
+          Soposty does not take responsibility for any issues arising or account
           termination due to the use of this method.
         </li>
       </ul>
@@ -574,7 +574,7 @@ export const AddProviderComponent: FC<{
             toaster.show(
               t(
                 'extension_not_installed',
-                'Postiz browser extension is not installed or not reachable.'
+                'Soposty browser extension is not installed or not reachable.'
               ),
               'warning'
             );
